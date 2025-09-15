@@ -6,6 +6,7 @@ import userReviewImg from "./routes/reviewImgRoutes.js";
 import homeBannerRoutes from "./routes/homeBannerRoutes.js";
 import categoriesRoutes from "./routes/categoriesRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
+import gallaryRoutes from "./routes/gallaryRoutes.js";
 import path from "path";
 import cors from "cors"; // ✅ import cors
 
@@ -32,6 +33,7 @@ app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 app.use("/api/user", userRoutes);
 app.use("/api/reviewimg", userReviewImg);
 app.use("/api/homebanner", homeBannerRoutes);
+app.use("/api/gallary", gallaryRoutes);
 app.use("/api/categories", categoriesRoutes);
 app.use("/api/products", productRoutes);
 
