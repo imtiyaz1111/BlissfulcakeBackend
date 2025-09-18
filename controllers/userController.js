@@ -104,6 +104,15 @@ export const loginUser = async (req, res) => {
         message: "Unauthorized access",
       });
     }
+
+    // ✅ Block login if disabled
+    if (user.isDisabled) {
+      return res.status(403).json({
+        success: false,
+        message: "Your account has been disabled. Contact admin.",
+      });
+    }
+
     const passwordCheck = await bcrypt.compare(password, user.password);
     if (!passwordCheck) {
       return res.status(402).json({
@@ -319,6 +328,49 @@ export const updatePassword = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Password updated successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// ✅ GET ALL USERS (Admin only)
+export const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find();
+    return res.status(200).json({
+      success: true,
+      count: users.length,
+      users,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// ✅ DISABLE/ENABLE USER (Admin only)
+export const toggleUserStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { isDisabled } = req.body;
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+    user.isDisabled = isDisabled;
+    await user.save();
+    return res.status(200).json({
+      success: true,
+      message: `User has been ${isDisabled ? "disabled" : "enabled"} successfully`,
     });
   } catch (error) {
     return res.status(500).json({

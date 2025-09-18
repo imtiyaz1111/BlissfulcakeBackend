@@ -5,7 +5,17 @@ import Product from "../model/productModel.js";
 // ✅ CREATE PRODUCT with Image Upload
 export const createProduct = async (req, res) => {
   try {
-    const { name,  description, category, deliveryInformation,careInstructions,manufactureDetails,flavor, weights, countInStock } = req.body;
+    const {
+      name,
+      description,
+      category,
+      deliveryInformation,
+      careInstructions,
+      manufactureDetails,
+      flavor,
+      weights,
+      countInStock,
+    } = req.body;
 
     if (!name || !description || !category) {
       return res.status(400).json({
@@ -15,7 +25,9 @@ export const createProduct = async (req, res) => {
     }
 
     // If file uploaded, store path
-    const productImg = req.file ? `/uploads/productImg/${req.file.filename}` : "";
+    const productImg = req.file
+      ? `/uploads/productImg/${req.file.filename}`
+      : "";
 
     const product = await Product.create({
       name,
@@ -86,7 +98,15 @@ export const getProductById = async (req, res) => {
 // ✅ UPDATE PRODUCT (with optional new image)
 export const updateProduct = async (req, res) => {
   try {
-    const { name, smallDescription, description, category, flavor, weights, countInStock } = req.body;
+    const {
+      name,
+      smallDescription,
+      description,
+      category,
+      flavor,
+      weights,
+      countInStock,
+    } = req.body;
 
     const product = await Product.findById(req.params.id);
     if (!product) {
@@ -99,7 +119,12 @@ export const updateProduct = async (req, res) => {
     // If new image uploaded, remove old image from server
     if (req.file) {
       if (product.image) {
-        const oldImagePath = path.join(process.cwd(), "uploads", "productImg", path.basename(product.image));
+        const oldImagePath = path.join(
+          process.cwd(),
+          "uploads",
+          "productImg",
+          path.basename(product.image)
+        );
         if (fs.existsSync(oldImagePath)) {
           fs.unlinkSync(oldImagePath);
         }
@@ -143,7 +168,12 @@ export const deleteProduct = async (req, res) => {
 
     // Remove image from server if exists
     if (product.image) {
-      const filePath = path.join(process.cwd(), "uploads", "productImg", path.basename(product.image));
+      const filePath = path.join(
+        process.cwd(),
+        "uploads",
+        "productImg",
+        path.basename(product.image)
+      );
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
       }

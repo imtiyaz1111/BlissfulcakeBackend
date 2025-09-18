@@ -8,6 +8,8 @@ import {
   updatePassword,
   verification,
   verifyOTP,
+  getAllUsers,
+  toggleUserStatus,
 } from "../controllers/userController.js";
 import { isAuthenticated, authorizeRoles } from "../middleware/isAuthenticated.js";
 import { userSchema, validateUser } from "../validators/userValidate.js";
@@ -26,6 +28,10 @@ router.post("/change-password/:email", changePassword);
 
 // ✅ update password (for logged-in users)
 router.put("/update-password", isAuthenticated, updatePassword);
+
+// ✅ admin routes
+router.get("/all-users", isAuthenticated, authorizeRoles("admin"), getAllUsers);
+router.put("/toggle-user/:id", isAuthenticated, authorizeRoles("admin"), toggleUserStatus);
 
 // ✅ example of role-based route
 router.get("/admin-only", isAuthenticated, authorizeRoles("admin"), (req, res) => {
