@@ -8,8 +8,8 @@ import { sendOtpMail } from "../emailVerify/sendOtpMail.js";
 // REGISTER
 export const registerUser = async (req, res) => {
   try {
-    const { username, email, password, role } = req.body;
-    if (!username || !email || !password) {
+    const { username, email, number, password } = req.body;
+    if (!username || !email || !number || !password) {
       return res.status(400).json({
         success: false,
         message: "All fields are required",
@@ -26,6 +26,7 @@ export const registerUser = async (req, res) => {
     const newUser = await User.create({
       username,
       email,
+      number, // ✅ FIXED (added number)
       password: hashedPassword,
     });
     const token = jwt.sign({ id: newUser._id }, process.env.SECRET_KEY, {
@@ -36,7 +37,7 @@ export const registerUser = async (req, res) => {
     await newUser.save();
     return res.status(201).json({
       success: true,
-      message: "User registered successfully",
+      message: "User registered successfully Please verify your email",
       data: newUser,
     });
   } catch (error) {
@@ -70,7 +71,9 @@ export const verification = async (req, res) => {
     }
     const user = await User.findById(decoded.id);
     if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
     }
     user.token = null;
     user.isVerified = true;
@@ -105,7 +108,6 @@ export const loginUser = async (req, res) => {
       });
     }
 
-    // ✅ Block login if disabled
     if (user.isDisabled) {
       return res.status(403).json({
         success: false,
@@ -115,30 +117,36 @@ export const loginUser = async (req, res) => {
 
     const passwordCheck = await bcrypt.compare(password, user.password);
     if (!passwordCheck) {
-      return res.status(402).json({
+      return res.status(401).json({
+        // ✅ FIXED (was 402)
         success: false,
         message: "Incorrect Password",
       });
     }
+
     if (!user.isVerified) {
       return res.status(403).json({
         success: false,
         message: "Verify your account before login",
       });
     }
+
     const existingSession = await Session.findOne({ userId: user._id });
     if (existingSession) {
       await Session.deleteOne({ userId: user._id });
     }
     await Session.create({ userId: user._id });
+
     const accessToken = jwt.sign({ id: user._id }, process.env.SECRET_KEY, {
       expiresIn: "10d",
     });
     const refreshToken = jwt.sign({ id: user._id }, process.env.SECRET_KEY, {
       expiresIn: "30d",
     });
+
     user.isLoggedIn = true;
     await user.save();
+
     return res.status(200).json({
       success: true,
       message: `Welcome back ${user.username}`,
@@ -153,7 +161,6 @@ export const loginUser = async (req, res) => {
     });
   }
 };
-
 // LOGOUT
 export const logoutUser = async (req, res) => {
   try {
@@ -370,7 +377,9 @@ export const toggleUserStatus = async (req, res) => {
     await user.save();
     return res.status(200).json({
       success: true,
-      message: `User has been ${isDisabled ? "disabled" : "enabled"} successfully`,
+      message: `User has been ${
+        isDisabled ? "disabled" : "enabled"
+      } successfully`,
     });
   } catch (error) {
     return res.status(500).json({

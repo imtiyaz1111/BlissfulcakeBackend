@@ -37,7 +37,7 @@ export const verifyMail = async (token, email) => {
         </p>
         <p style="text-align: center; color:#ffffff">
           <a
-            href="http://localhost:5173/verify/{{token}}"
+            href="http://localhost:5173/verify-email/{{token}}"
             target="_blank"
             style="
       display: inline-block;
