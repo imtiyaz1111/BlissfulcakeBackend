@@ -1,4 +1,5 @@
 import Address from "../model/addressModel.js";
+import { User } from "../model/userModel.js";
 
 // ✅ Create new address
 export const addAddress = async (req, res) => {
@@ -26,6 +27,9 @@ export const addAddress = async (req, res) => {
       country,
       isDefault,
     });
+    // ✅ Correctly push the new address reference into User model
+    await User.findByIdAndUpdate(userId, { $push: { address: newAddress } });
+
 
     return res.status(201).json({
       success: true,
@@ -101,8 +105,16 @@ export const deleteAddress = async (req, res) => {
       return res.status(404).json({ success: false, message: "Address not found" });
     }
 
+    // ✅ Remove the address reference from the User's address array
+    await User.findByIdAndUpdate(userId, { $pull: { address } });
+
+    // ✅ Delete the address document
     await address.deleteOne();
-    return res.status(200).json({ success: true, message: "Address deleted successfully" });
+
+    return res.status(200).json({
+      success: true,
+      message: "Address deleted successfully",
+    });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
   }

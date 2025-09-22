@@ -26,7 +26,7 @@ export const registerUser = async (req, res) => {
     const newUser = await User.create({
       username,
       email,
-      number, // ✅ FIXED (added number)
+      number, 
       password: hashedPassword,
     });
     const token = jwt.sign({ id: newUser._id }, process.env.SECRET_KEY, {
@@ -191,7 +191,7 @@ export const forgotPassword = async (req, res) => {
       });
     }
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiry = new Date(Date.now() + 10 * 60 * 1000);
+    const expiry = new Date(Date.now() + 1 * 60 * 1000);
     user.otp = otp;
     user.otpExpiry = expiry;
     await user.save();
@@ -199,6 +199,7 @@ export const forgotPassword = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "OTP sent successfully",
+      data: user
     });
   } catch (error) {
     return res.status(500).json({
@@ -380,6 +381,52 @@ export const toggleUserStatus = async (req, res) => {
       message: `User has been ${
         isDisabled ? "disabled" : "enabled"
       } successfully`,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// ✅ RESEND OTP
+export const resendOtp = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    // Check if email is provided
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Email is required",
+      });
+    }
+
+    // Check if user exists
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Generate new OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiry = new Date(Date.now() + 1 * 60 * 1000); // valid for 1 minute
+
+    // Update user record
+    user.otp = otp;
+    user.otpExpiry = expiry;
+    await user.save();
+
+    // Send OTP via email
+    await sendOtpMail(email, otp);
+
+    return res.status(200).json({
+      success: true,
+      message: "New OTP sent successfully",
     });
   } catch (error) {
     return res.status(500).json({

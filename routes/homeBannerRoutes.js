@@ -1,5 +1,7 @@
 import express from "express";
 import multer from "multer";
+import fs from "fs";
+import path from "path";
 import {
   uploadBannerImage,
   getAllBannerImages,
@@ -9,13 +11,18 @@ import { authorizeRoles, isAuthenticated } from "../middleware/isAuthenticated.j
 
 const router = express.Router();
 
+// Ensure upload folder exists
+const uploadDir = path.join(process.cwd(), "uploads", "bannerImg");
+if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+
 // Storage configuration
 const uploadsStorage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "uploads/bannerImg"); // Folder where files will be stored
+    cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
-    cb(null, file.originalname); // Keep the original file name
+    const uniqueName = `${file.originalname}`;
+    cb(null, uniqueName);
   },
 });
 
@@ -32,16 +39,26 @@ const uploadFileFilter = (req, file, cb) => {
 const uploads = multer({
   storage: uploadsStorage,
   fileFilter: uploadFileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB limit
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
 });
 
-// Routes
-
-// pulic routes
+// Public routes
 router.get("/", getAllBannerImages);
 
-// protected + admin routes
-router.post("/upload",isAuthenticated,authorizeRoles("admin"),  uploads.single("bannerImg"), uploadBannerImage);
-router.delete("/:id",isAuthenticated,authorizeRoles("admin"), deleteBannerImage);
+// Protected + admin routes
+router.post(
+  "/upload",
+  isAuthenticated,
+  authorizeRoles("admin"),
+  uploads.single("bannerImg"),
+  uploadBannerImage
+);
+
+router.delete(
+  "/:id",
+  isAuthenticated,
+  authorizeRoles("admin"),
+  deleteBannerImage
+);
 
 export default router;

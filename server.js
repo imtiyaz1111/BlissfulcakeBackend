@@ -7,6 +7,7 @@ import homeBannerRoutes from "./routes/homeBannerRoutes.js";
 import categoriesRoutes from "./routes/categoriesRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 import gallaryRoutes from "./routes/gallaryRoutes.js";
+import addressRoutes from "./routes/addressRoutes.js"
 import path from "path";
 import cors from "cors"; // ✅ import cors
 
@@ -36,6 +37,7 @@ app.use("/api/homebanner", homeBannerRoutes);
 app.use("/api/gallary", gallaryRoutes);
 app.use("/api/categories", categoriesRoutes);
 app.use("/api/products", productRoutes);
+app.use("/api/address", addressRoutes);
 
 // Start server
 const PORT = process.env.PORT || 5000;
