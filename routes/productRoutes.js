@@ -7,6 +7,8 @@ import {
   updateProduct,
   deleteProduct,
   createProductReview,
+  getProductsByCategory,
+  getRelatedProducts,
 } from "../controllers/productController.js";
 import { authorizeRoles, isAuthenticated } from "../middleware/isAuthenticated.js";
 
@@ -41,6 +43,12 @@ const uploads = multer({
 // Public routes
 router.get("/", getProducts);
 router.get("/:id", getProductById);
+// Fetch products by category
+router.get("/product/:category", getProductsByCategory);
+
+// Fetch related products for a specific product
+router.get("/related/:id", getRelatedProducts);
+
 
 // Protected + Admin routes
 router.post("/create", isAuthenticated,authorizeRoles("admin"), uploads.single("image"),createProduct);
@@ -48,6 +56,7 @@ router.put("/update/:id", isAuthenticated,authorizeRoles("admin"), uploads.singl
 router.delete("/delete/:id", isAuthenticated,authorizeRoles("admin"),  deleteProduct);
 
 // Reviews (only logged in users can review)
-router.post("/:id/reviews", isAuthenticated, createProductReview);
+router.post("/reviews/:id", isAuthenticated, createProductReview);
+
 
 export default router;
