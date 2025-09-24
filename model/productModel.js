@@ -16,6 +16,10 @@ const reviewSchema = mongoose.Schema(
       enum: ["pending", "approved", "not approved"], // only these 3 values allowed
       default: "pending",
     },
+    reply: {
+      type: String, // admin's reply
+      default: "",
+    },
   },
   { timestamps: true }
 );
@@ -41,21 +45,9 @@ const productSchema = mongoose.Schema(
     // ✅ Multiple weight options
     weights: {
       type: [weightOptionSchema],
-      default: [
-        { label: "1kg", price: 0, discountedPrice: 0 },
-        { label: "1.5kg", price: 0, discountedPrice: 0 },
-        { label: "2kg", price: 0, discountedPrice: 0 },
-        { label: "2.5kg", price: 0, discountedPrice: 0 },
-        { label: "3kg", price: 0, discountedPrice: 0 },
-        { label: "3.5kg", price: 0, discountedPrice: 0 },
-        { label: "4kg", price: 0, discountedPrice: 0 },
-      ],
     },
-
     image: { type: String }, // product main image URL or path
     countInStock: { type: Number, required: true, default: 0 },
-    quantity: { type: Number, default: 1 }, // default quantity
-
     ratings: { type: Number, default: 0 },
     numReviews: { type: Number, default: 0 },
     reviews: [reviewSchema], // list of user reviews

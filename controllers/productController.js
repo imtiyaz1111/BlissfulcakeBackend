@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import mongoose from "mongoose";
 import Product from "../model/productModel.js";
+import asyncHandler from "express-async-handler";
 
 // Helper: validate MongoDB ID
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
@@ -37,7 +38,8 @@ export const createProduct = async (req, res) => {
     let parsedWeights = [];
     if (weights) {
       try {
-        parsedWeights = typeof weights === "string" ? JSON.parse(weights) : weights;
+        parsedWeights =
+          typeof weights === "string" ? JSON.parse(weights) : weights;
         if (!Array.isArray(parsedWeights))
           throw new Error("Weights must be an array");
         parsedWeights.forEach((w) => {
@@ -54,7 +56,9 @@ export const createProduct = async (req, res) => {
     }
 
     // Handle image path
-    const productImg = req.file ? `/uploads/productImg/${req.file.filename}` : "";
+    const productImg = req.file
+      ? `/uploads/productImg/${req.file.filename}`
+      : "";
 
     const product = await Product.create({
       name,
@@ -99,11 +103,15 @@ export const getProductById = async (req, res) => {
   try {
     const { id } = req.params;
     if (!isValidObjectId(id))
-      return res.status(400).json({ success: false, message: "Invalid product ID" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid product ID" });
 
     const product = await Product.findById(id);
     if (!product)
-      return res.status(404).json({ success: false, message: "Product not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Product not found" });
 
     return res.status(200).json({ success: true, data: product });
   } catch (error) {
@@ -116,11 +124,15 @@ export const updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
     if (!isValidObjectId(id))
-      return res.status(400).json({ success: false, message: "Invalid product ID" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid product ID" });
 
     const product = await Product.findById(id);
     if (!product)
-      return res.status(404).json({ success: false, message: "Product not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Product not found" });
 
     const {
       name,
@@ -133,13 +145,17 @@ export const updateProduct = async (req, res) => {
     } = req.body;
 
     if (countInStock && isNaN(countInStock))
-      return res.status(400).json({ success: false, message: "countInStock must be a number" });
+      return res.status(400).json({
+        success: false,
+        message: "countInStock must be a number",
+      });
 
     // Handle weights
     let parsedWeights = weights;
     if (weights) {
       try {
-        parsedWeights = typeof weights === "string" ? JSON.parse(weights) : weights;
+        parsedWeights =
+          typeof weights === "string" ? JSON.parse(weights) : weights;
         if (!Array.isArray(parsedWeights))
           throw new Error("Weights must be an array");
         parsedWeights.forEach((w) => {
@@ -170,7 +186,8 @@ export const updateProduct = async (req, res) => {
 
     // Update fields
     product.name = name || product.name;
-    product.smallDescription = smallDescription || product.smallDescription;
+    product.smallDescription =
+      smallDescription || product.smallDescription;
     product.description = description || product.description;
     product.category = category || product.category;
     product.flavor = flavor || product.flavor;
@@ -193,11 +210,15 @@ export const deleteProduct = async (req, res) => {
   try {
     const { id } = req.params;
     if (!isValidObjectId(id))
-      return res.status(400).json({ success: false, message: "Invalid product ID" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid product ID" });
 
     const product = await Product.findById(id);
     if (!product)
-      return res.status(404).json({ success: false, message: "Product not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Product not found" });
 
     if (product.image) {
       const filePath = path.join(
@@ -210,7 +231,9 @@ export const deleteProduct = async (req, res) => {
     }
 
     await product.deleteOne();
-    return res.status(200).json({ success: true, message: "Product deleted successfully" });
+    return res
+      .status(200)
+      .json({ success: true, message: "Product deleted successfully" });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
   }
@@ -221,44 +244,136 @@ export const createProductReview = async (req, res) => {
   try {
     const { id } = req.params;
     if (!isValidObjectId(id))
-      return res.status(400).json({ success: false, message: "Invalid product ID" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid product ID" });
 
     const { rating, comment } = req.body;
     if (!rating || isNaN(rating) || rating < 1 || rating > 5)
-      return res.status(400).json({ success: false, message: "Rating must be 1-5" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Rating must be 1-5" });
 
     const product = await Product.findById(id);
     if (!product)
-      return res.status(404).json({ success: false, message: "Product not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Product not found" });
 
     const alreadyReviewed = product.reviews.find(
       (r) => r.user.toString() === req.user._id.toString()
     );
     if (alreadyReviewed)
-      return res.status(400).json({ success: false, message: "You have already reviewed this product" });
+      return res.status(400).json({
+        success: false,
+        message: "You have already reviewed this product",
+      });
 
-    const review = { name: req.user.username, rating: Number(rating), comment, user: req.user._id };
+    const review = {
+      name: req.user.username,
+      rating: Number(rating),
+      comment,
+      user: req.user._id,
+    };
     product.reviews.push(review);
     product.numReviews = product.reviews.length;
-    product.ratings = product.reviews.reduce((acc, item) => item.rating + acc, 0) / product.reviews.length;
+    product.ratings =
+      product.reviews.reduce((acc, item) => item.rating + acc, 0) /
+      product.reviews.length;
 
     await product.save();
-    return res.status(201).json({ success: true, message: "Review added successfully" });
+    return res
+      .status(201)
+      .json({ success: true, message: "Review added successfully" });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
   }
 };
+
+// ✅ ADMIN REPLY TO REVIEW
+export const replyToReview = async (req, res) => {
+  try {
+    const { productId, reviewId } = req.params;
+    const { reply } = req.body;
+
+    if (!isValidObjectId(productId) || !isValidObjectId(reviewId))
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid IDs provided" });
+
+    const product = await Product.findById(productId);
+    if (!product)
+      return res
+        .status(404)
+        .json({ success: false, message: "Product not found" });
+
+    const review = product.reviews.id(reviewId);
+    if (!review)
+      return res
+        .status(404)
+        .json({ success: false, message: "Review not found" });
+
+    review.reply = reply;
+    await product.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Reply added successfully",
+      review,
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ✅ Admin update review status
+export const updateReviewStatus = asyncHandler(async (req, res) => {
+  const { productId, reviewId } = req.params;
+  const { status } = req.body; // "pending" | "approved" | "not approved"
+
+  // Validate status
+  const allowedStatuses = ["pending", "approved", "not approved"];
+  if (!allowedStatuses.includes(status)) {
+    return res.status(400).json({success: false, message: "Invalid review status" });
+  }
+
+  // Find product
+  const product = await Product.findById(productId);
+  if (!product) {
+    return res.status(404).json({success: false, message: "Product not found" });
+  }
+
+  // Find review
+  const review = product.reviews.id(reviewId);
+  if (!review) {
+    return res.status(404).json({success: false, message: "Review not found" });
+  }
+
+  // Update status
+  review.status = status;
+  await product.save();
+
+  res.status(200).json({
+  success: true,
+    message: "Review status updated successfully",
+    review,
+  });
+});
 
 // ✅ GET RELATED PRODUCTS
 export const getRelatedProducts = async (req, res) => {
   try {
     const { id } = req.params;
     if (!isValidObjectId(id))
-      return res.status(400).json({ success: false, message: "Invalid product ID" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid product ID" });
 
     const product = await Product.findById(id);
     if (!product)
-      return res.status(404).json({ success: false, message: "Product not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Product not found" });
 
     const relatedProducts = await Product.find({
       category: product.category,
@@ -276,10 +391,16 @@ export const getProductsByCategory = async (req, res) => {
   try {
     const { category } = req.params;
     if (!category)
-      return res.status(400).json({ success: false, message: "Category is required" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Category is required" });
 
     const products = await Product.find({ category });
-    return res.status(200).json({ success: true, count: products.length, data: products });
+    return res.status(200).json({
+      success: true,
+      count: products.length,
+      data: products,
+    });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
   }

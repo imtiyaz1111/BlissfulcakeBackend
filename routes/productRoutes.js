@@ -9,6 +9,8 @@ import {
   createProductReview,
   getProductsByCategory,
   getRelatedProducts,
+  replyToReview,
+  updateReviewStatus,
 } from "../controllers/productController.js";
 import { authorizeRoles, isAuthenticated } from "../middleware/isAuthenticated.js";
 
@@ -20,7 +22,7 @@ const uploadsStorage = multer.diskStorage({
     cb(null, "uploads/productImg"); // Folder where files will be stored
   },
   filename: (req, file, cb) => {
-    cb(null, file.originalname); // Keep the original file name
+    cb(null, Date.now() + "-" + file.originalname); // safer unique naming
   },
 });
 
@@ -42,21 +44,50 @@ const uploads = multer({
 
 // Public routes
 router.get("/", getProducts);
-router.get("/:id", getProductById);
-// Fetch products by category
+// fetch products by category (placed before /:id to avoid conflict)
 router.get("/product/:category", getProductsByCategory);
-
-// Fetch related products for a specific product
+router.get("/:id", getProductById);
 router.get("/related/:id", getRelatedProducts);
 
-
 // Protected + Admin routes
-router.post("/create", isAuthenticated,authorizeRoles("admin"), uploads.single("image"),createProduct);
-router.put("/update/:id", isAuthenticated,authorizeRoles("admin"), uploads.single("image"), updateProduct);
-router.delete("/delete/:id", isAuthenticated,authorizeRoles("admin"),  deleteProduct);
+router.post(
+  "/create",
+  isAuthenticated,
+  authorizeRoles("admin"),
+  uploads.single("image"),
+  createProduct
+);
+router.put(
+  "/update/:id",
+  isAuthenticated,
+  authorizeRoles("admin"),
+  uploads.single("image"),
+  updateProduct
+);
+router.delete(
+  "/delete/:id",
+  isAuthenticated,
+  authorizeRoles("admin"),
+  deleteProduct
+);
 
-// Reviews (only logged in users can review)
+// Reviews
 router.post("/reviews/:id", isAuthenticated, createProductReview);
 
+// ✅ Admin Reply to Review
+router.post(
+  "/reviews/:productId/:reviewId/reply",
+  isAuthenticated,
+  authorizeRoles("admin"),
+  replyToReview
+);
+
+// ✅ Admin: Update review status
+router.put(
+  "/reviews/:productId/:reviewId/status",
+  isAuthenticated,
+  authorizeRoles("admin"),
+  updateReviewStatus
+);
 
 export default router;
