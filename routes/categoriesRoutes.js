@@ -3,6 +3,7 @@ import multer from "multer";
 import {
   createCategory,
   getAllCategories,
+  getSingleCategory, // ✅ new import
   deleteCategory,
   updateCategory,
 } from "../controllers/categoriesController.js";
@@ -38,10 +39,28 @@ const uploads = multer({
 
 // public routes
 router.get("/", getAllCategories);
+router.get("/:id", getSingleCategory); // ✅ new route
 
 // protected + admin routes
-router.post("/create",isAuthenticated,authorizeRoles("admin"), uploads.single("image"), createCategory);
-router.delete("/:id",isAuthenticated,authorizeRoles("admin"), deleteCategory);
-router.put("/:id",isAuthenticated,authorizeRoles("admin"), uploads.single("image"), updateCategory);
+router.post(
+  "/create",
+  isAuthenticated,
+  authorizeRoles("admin"),
+  uploads.single("image"),
+  createCategory
+);
+router.delete(
+  "/:id",
+  isAuthenticated,
+  authorizeRoles("admin"),
+  deleteCategory
+);
+router.put(
+  "/:id",
+  isAuthenticated,
+  authorizeRoles("admin"),
+  uploads.single("image"),
+  updateCategory
+);
 
 export default router;

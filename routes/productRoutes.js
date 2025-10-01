@@ -45,7 +45,7 @@ const uploads = multer({
 // Public routes
 router.get("/", getProducts);
 // fetch products by category (placed before /:id to avoid conflict)
-router.get("/product/:category", getProductsByCategory);
+router.get("/:category", getProductsByCategory);
 router.get("/:id", getProductById);
 router.get("/related/:id", getRelatedProducts);
 
