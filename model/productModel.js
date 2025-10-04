@@ -38,9 +38,6 @@ const productSchema = mongoose.Schema(
     description: { type: String, required: true },
     category: { type: String, required: true }, // e.g., Birthday, Wedding, Cupcakes
     flavor: { type: String }, // e.g., Chocolate, Vanilla, Red Velvet
-    deliveryInformation: { type: String, required: true },
-    careInstructions: { type: String },
-    manufactureDetails: { type: String },
 
     // ✅ Multiple weight options
     weights: {
@@ -55,5 +52,5 @@ const productSchema = mongoose.Schema(
   { timestamps: true }
 );
 
-const Product = mongoose.model("Product", productSchema);
-export default Product;
+const Products = mongoose.model("Product", productSchema);
+export default Products;

@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import mongoose from "mongoose";
-import Product from "../model/productModel.js";
+import Products from "../model/productModel.js";
 import asyncHandler from "express-async-handler";
 
 // Helper: validate MongoDB ID
@@ -10,19 +10,9 @@ const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 // ✅ CREATE PRODUCT with Image Upload
 export const createProduct = async (req, res) => {
   try {
-    const {
-      name,
-      description,
-      category,
-      deliveryInformation,
-      careInstructions,
-      manufactureDetails,
-      flavor,
-      weights,
-      countInStock,
-    } = req.body;
+    const { name, description, category, flavor, weights, countInStock } =
+      req.body;
 
-    // Validation
     if (!name || !description || !category)
       return res.status(400).json({
         success: false,
@@ -55,17 +45,13 @@ export const createProduct = async (req, res) => {
       }
     }
 
-    // Handle image path
     const productImg = req.file
       ? `/uploads/productImg/${req.file.filename}`
       : "";
 
-    const product = await Product.create({
+    const product = await Products.create({
       name,
       description,
-      deliveryInformation,
-      careInstructions,
-      manufactureDetails,
       category,
       flavor,
       weights: parsedWeights,
@@ -86,7 +72,7 @@ export const createProduct = async (req, res) => {
 // ✅ GET ALL PRODUCTS
 export const getProducts = async (req, res) => {
   try {
-    const products = await Product.find().sort({ createdAt: -1 });
+    const products = await Products.find().sort({ createdAt: -1 });
     return res.status(200).json({
       success: true,
       message: "All products fetched successfully",
@@ -98,8 +84,8 @@ export const getProducts = async (req, res) => {
   }
 };
 
-// ✅ GET SINGLE PRODUCT BY ID
-export const getProductById = async (req, res) => {
+// ✅ GET SINGLE PRODUCT
+export const getSingleProduct = async (req, res) => {
   try {
     const { id } = req.params;
     if (!isValidObjectId(id))
@@ -107,13 +93,17 @@ export const getProductById = async (req, res) => {
         .status(400)
         .json({ success: false, message: "Invalid product ID" });
 
-    const product = await Product.findById(id);
+    const product = await Products.findById(id);
     if (!product)
       return res
         .status(404)
         .json({ success: false, message: "Product not found" });
 
-    return res.status(200).json({ success: true, data: product });
+    return res.status(200).json({
+      success: true,
+      message: "Product fetched successfully",
+      data: product,
+    });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
   }
@@ -123,34 +113,29 @@ export const getProductById = async (req, res) => {
 export const updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
-    if (!isValidObjectId(id))
+    if (!isValidObjectId(id)) {
       return res
         .status(400)
         .json({ success: false, message: "Invalid product ID" });
+    }
 
-    const product = await Product.findById(id);
-    if (!product)
+    const product = await Products.findById(id);
+    if (!product) {
       return res
         .status(404)
         .json({ success: false, message: "Product not found" });
+    }
 
-    const {
-      name,
-      smallDescription,
-      description,
-      category,
-      flavor,
-      weights,
-      countInStock,
-    } = req.body;
+    const { name, description, category, flavor, weights, countInStock } =
+      req.body;
 
-    if (countInStock && isNaN(countInStock))
+    if (countInStock && isNaN(countInStock)) {
       return res.status(400).json({
         success: false,
         message: "countInStock must be a number",
       });
+    }
 
-    // Handle weights
     let parsedWeights = weights;
     if (weights) {
       try {
@@ -158,9 +143,11 @@ export const updateProduct = async (req, res) => {
           typeof weights === "string" ? JSON.parse(weights) : weights;
         if (!Array.isArray(parsedWeights))
           throw new Error("Weights must be an array");
+
         parsedWeights.forEach((w) => {
-          if (!w.label || isNaN(w.price) || isNaN(w.discountedPrice))
+          if (!w.label || isNaN(w.price) || isNaN(w.discountedPrice)) {
             throw new Error("Invalid weight object");
+          }
         });
       } catch (err) {
         return res.status(400).json({
@@ -184,10 +171,7 @@ export const updateProduct = async (req, res) => {
       product.image = `/uploads/productImg/${req.file.filename}`;
     }
 
-    // Update fields
     product.name = name || product.name;
-    product.smallDescription =
-      smallDescription || product.smallDescription;
     product.description = description || product.description;
     product.category = category || product.category;
     product.flavor = flavor || product.flavor;
@@ -195,6 +179,7 @@ export const updateProduct = async (req, res) => {
     product.countInStock = countInStock ?? product.countInStock;
 
     const updatedProduct = await product.save();
+
     return res.status(200).json({
       success: true,
       message: "Product updated successfully",
@@ -214,7 +199,7 @@ export const deleteProduct = async (req, res) => {
         .status(400)
         .json({ success: false, message: "Invalid product ID" });
 
-    const product = await Product.findById(id);
+    const product = await Products.findById(id);
     if (!product)
       return res
         .status(404)
@@ -254,7 +239,7 @@ export const createProductReview = async (req, res) => {
         .status(400)
         .json({ success: false, message: "Rating must be 1-5" });
 
-    const product = await Product.findById(id);
+    const product = await Products.findById(id);
     if (!product)
       return res
         .status(404)
@@ -301,7 +286,7 @@ export const replyToReview = async (req, res) => {
         .status(400)
         .json({ success: false, message: "Invalid IDs provided" });
 
-    const product = await Product.findById(productId);
+    const product = await Products.findById(productId);
     if (!product)
       return res
         .status(404)
@@ -329,32 +314,34 @@ export const replyToReview = async (req, res) => {
 // ✅ Admin update review status
 export const updateReviewStatus = asyncHandler(async (req, res) => {
   const { productId, reviewId } = req.params;
-  const { status } = req.body; // "pending" | "approved" | "not approved"
+  const { status } = req.body;
 
-  // Validate status
   const allowedStatuses = ["pending", "approved", "not approved"];
   if (!allowedStatuses.includes(status)) {
-    return res.status(400).json({success: false, message: "Invalid review status" });
+    return res
+      .status(400)
+      .json({ success: false, message: "Invalid review status" });
   }
 
-  // Find product
-  const product = await Product.findById(productId);
+  const product = await Products.findById(productId);
   if (!product) {
-    return res.status(404).json({success: false, message: "Product not found" });
+    return res
+      .status(404)
+      .json({ success: false, message: "Product not found" });
   }
 
-  // Find review
   const review = product.reviews.id(reviewId);
   if (!review) {
-    return res.status(404).json({success: false, message: "Review not found" });
+    return res
+      .status(404)
+      .json({ success: false, message: "Review not found" });
   }
 
-  // Update status
   review.status = status;
   await product.save();
 
   res.status(200).json({
-  success: true,
+    success: true,
     message: "Review status updated successfully",
     review,
   });
@@ -369,13 +356,13 @@ export const getRelatedProducts = async (req, res) => {
         .status(400)
         .json({ success: false, message: "Invalid product ID" });
 
-    const product = await Product.findById(id);
+    const product = await Products.findById(id);
     if (!product)
       return res
         .status(404)
         .json({ success: false, message: "Product not found" });
 
-    const relatedProducts = await Product.find({
+    const relatedProducts = await Products.find({
       category: product.category,
       _id: { $ne: product._id },
     }).limit(5);
@@ -395,7 +382,7 @@ export const getProductsByCategory = async (req, res) => {
         .status(400)
         .json({ success: false, message: "Category is required" });
 
-    const products = await Product.find({ category });
+    const products = await Products.find({ category });
     return res.status(200).json({
       success: true,
       count: products.length,

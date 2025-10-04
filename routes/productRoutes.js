@@ -3,7 +3,7 @@ import multer from "multer";
 import {
   createProduct,
   getProducts,
-  getProductById,
+  getSingleProduct,   // ✅ NEW
   updateProduct,
   deleteProduct,
   createProductReview,
@@ -44,10 +44,9 @@ const uploads = multer({
 
 // Public routes
 router.get("/", getProducts);
-// fetch products by category (placed before /:id to avoid conflict)
-router.get("/:category", getProductsByCategory);
-router.get("/:id", getProductById);
+router.get("/:id", getSingleProduct); // ✅ Get single product by ID
 router.get("/related/:id", getRelatedProducts);
+router.get("/:category", getProductsByCategory);
 
 // Protected + Admin routes
 router.post(
