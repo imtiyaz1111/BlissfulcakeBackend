@@ -1,11 +1,15 @@
-import Cart from "../models/cartModel.js";
-import Product from "../models/productModel.js";
+import Cart from "../model/cartModel.js";
+import Product from "../model/productModel.js";
 
 // ✅ Add product to cart
 export const addToCart = async (req, res) => {
   try {
     const { productId, quantity } = req.body;
-    const userId = req.user._id; // comes from protect middleware
+    const userId = req.user._id;
+
+    if (!productId || !quantity || quantity <= 0) {
+      return res.status(400).json({ success: false, message: "Invalid product or quantity" });
+    }
 
     const product = await Product.findById(productId);
     if (!product) {
@@ -41,10 +45,10 @@ export const addToCart = async (req, res) => {
 export const getCart = async (req, res) => {
   try {
     const userId = req.user._id;
-
     const cart = await Cart.findOne({ user: userId }).populate("items.product");
+
     if (!cart) {
-      return res.status(404).json({ success: false, message: "Cart is empty" });
+      return res.status(200).json({ success: true, cart: { items: [] } });
     }
 
     res.status(200).json({ success: true, cart });
@@ -58,6 +62,10 @@ export const updateCartItem = async (req, res) => {
   try {
     const { productId, quantity } = req.body;
     const userId = req.user._id;
+
+    if (!productId || !quantity || quantity <= 0) {
+      return res.status(400).json({ success: false, message: "Invalid product or quantity" });
+    }
 
     const cart = await Cart.findOne({ user: userId });
     if (!cart) {
@@ -92,11 +100,13 @@ export const removeFromCart = async (req, res) => {
       return res.status(404).json({ success: false, message: "Cart not found" });
     }
 
-    cart.items = cart.items.filter(
+    const newItems = cart.items.filter(
       (item) => item.product.toString() !== productId
     );
 
+    cart.items = newItems;
     await cart.save();
+
     res.status(200).json({ success: true, message: "Product removed from cart", cart });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

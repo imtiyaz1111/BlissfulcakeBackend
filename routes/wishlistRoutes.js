@@ -1,16 +1,16 @@
 import express from "express";
 import { addToWishlist, getWishlist, removeFromWishlist } from "../controllers/wishlistController.js";
-import { protect } from "../middleware/authMiddleware.js"; // ✅ middleware for authentication
+import { isAuthenticated } from "../middleware/isAuthenticated.js";
 
 const router = express.Router();
 
 // Add to wishlist
-router.post("/add", protect, addToWishlist);
+router.post("/add", isAuthenticated, addToWishlist);
 
 // Get wishlist
-router.get("/", protect, getWishlist);
+router.get("/", isAuthenticated, getWishlist);
 
 // Remove from wishlist
-router.delete("/remove/:productId", protect, removeFromWishlist);
+router.delete("/remove/:productId", isAuthenticated, removeFromWishlist);
 
 export default router;

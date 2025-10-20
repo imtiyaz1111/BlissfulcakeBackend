@@ -6,23 +6,23 @@ import {
   removeFromCart,
   clearCart,
 } from "../controllers/cartController.js";
-import { protect } from "../middleware/authMiddleware.js"; // auth middleware
+import { isAuthenticated } from "../middleware/isAuthenticated.js";
 
 const router = express.Router();
 
 // Add product to cart
-router.post("/add", protect, addToCart);
+router.post("/add", isAuthenticated, addToCart);
 
 // Get cart
-router.get("/", protect, getCart);
+router.get("/", isAuthenticated, getCart);
 
 // Update cart item quantity
-router.put("/update", protect, updateCartItem);
+router.put("/update", isAuthenticated, updateCartItem);
 
 // Remove product from cart
-router.delete("/remove/:productId", protect, removeFromCart);
+router.delete("/remove/:productId", isAuthenticated, removeFromCart);
 
 // Clear entire cart
-router.delete("/clear", protect, clearCart);
+router.delete("/clear", isAuthenticated, clearCart);
 
 export default router;

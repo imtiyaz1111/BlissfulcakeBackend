@@ -46,7 +46,7 @@ const uploads = multer({
 router.get("/", getProducts);
 router.get("/:id", getSingleProduct); // ✅ Get single product by ID
 router.get("/related/:id", getRelatedProducts);
-router.get("/:category", getProductsByCategory);
+router.get("/category/:category", getProductsByCategory);
 
 // Protected + Admin routes
 router.post(

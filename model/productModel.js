@@ -13,7 +13,7 @@ const reviewSchema = mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["pending", "approved", "not approved"], // only these 3 values allowed
+      enum: ["pending", "approved", "not approved"], 
       default: "pending",
     },
     reply: {
@@ -26,9 +26,9 @@ const reviewSchema = mongoose.Schema(
 
 // ✅ Weight option sub-schema
 const weightOptionSchema = mongoose.Schema({
-  label: { type: String, required: true }, // e.g. "1kg"
-  price: { type: Number, required: true }, // price for that weight
-  discountedPrice: { type: Number, default: 0 }, // optional discounted price
+  label: { type: String, required: true }, 
+  price: { type: Number, required: true },
+  discountedPrice: { type: Number, default: 0 }, 
 });
 
 // ✅ Product schema
@@ -36,18 +36,18 @@ const productSchema = mongoose.Schema(
   {
     name: { type: String, required: true },
     description: { type: String, required: true },
-    category: { type: String, required: true }, // e.g., Birthday, Wedding, Cupcakes
-    flavor: { type: String }, // e.g., Chocolate, Vanilla, Red Velvet
+    category: { type: String, required: true }, 
+    flavor: { type: String }, 
 
     // ✅ Multiple weight options
     weights: {
       type: [weightOptionSchema],
     },
-    image: { type: String }, // product main image URL or path
+    image: { type: String }, 
     countInStock: { type: Number, required: true, default: 0 },
     ratings: { type: Number, default: 0 },
     numReviews: { type: Number, default: 0 },
-    reviews: [reviewSchema], // list of user reviews
+    reviews: [reviewSchema], 
   },
   { timestamps: true }
 );
