@@ -11,6 +11,7 @@ import addressRoutes from "./routes/addressRoutes.js"
 import contactRoutes from "./routes/contactRoutes.js"
 import cartRoutes from "./routes/cartRoutes.js"
 import wishlistRoutes from "./routes/wishlistRoutes.js"
+import couponRoutes from "./routes/couponRoutes.js"
 import path from "path";
 import cors from "cors"; // ✅ import cors
 
@@ -44,6 +45,7 @@ app.use("/api/address", addressRoutes);
 app.use("/api/contacts", contactRoutes);
 app.use("/api/cart",cartRoutes );
 app.use("/api/wishlist",wishlistRoutes );
+app.use("/api/coupon", couponRoutes);
 
 // Start server
 const PORT = process.env.PORT || 5000;
