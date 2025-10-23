@@ -18,6 +18,7 @@ const userSchema = new mongoose.Schema(
     otpExpiry: { type: Date, default: null },
     isDisabled: { type: Boolean, default: false },
     address: { type: Array, default: null },
+    profileImage: { type: String, default: "" },
   },
   { timestamps: true }
 );
